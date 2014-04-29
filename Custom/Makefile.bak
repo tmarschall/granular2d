@@ -1,0 +1,119 @@
+# This is a sample makefile
+# By changing the directories variables to reflect the local filesystem
+#  it should successfully compile on most systems
+
+
+# set project root directory
+PROJECT_ROOT=/home/tmarscha/granular2d
+
+# define compilers
+NVCC=nvcc
+CXX=g++
+
+# set where the cuda toolkit is installed on the system
+CUDAPATH=/usr/local/cuda/5.0/
+
+# set additional directories to search for header files
+CXXINCLUDES= -I$(CUDAPATH)/include -I$(PROJECT_ROOT)/include
+NVCCINCLUDES= -I$(CUDAPATH)/include -I$(PROJECT_ROOT)/include
+
+# set compiler flags for object compilation
+CXXFLAGS= -Wall -O3
+NVCCFLAGS= -O3 --ptxas-options=-v -arch=sm_30 
+
+# set additional directories to search for libraries
+LIBFLAGS= -L$(CUDAPATH)/lib64
+# set linker flags
+LDFLAGS= -Wall -lcudart
+
+# list of c++ and cuda source files
+CXXSRCS= box.cpp cell_list.cpp device_config.cpp disk.cpp error_check.cpp neighbor_list.cpp spherocyl2d.cpp
+TESTSRCS= main.cpp
+NVCCSRCS= find_neighbors.cu
+
+# set paths to search for prerequisites
+VPATH= ../src/cpp:../src/cu:../tests:../include
+
+# list of objects
+OBJDIR=obj
+CXXOBJS= $(patsubst %.cpp,$(OBJDIR)/cpp/%.o, $(CXXSRCS))
+TESTOBJS= $(patsubst %.cpp,$(OBJDIR)/tests/%.o,$(TESTSRCS))
+NVCCOBJS= $(patsubst %.cu,$(OBJDIR)/cu/%.o, $(NVCCSRCS))
+
+# executables
+MAINEXE= granular2d_test
+
+all: $(MAINEXE)
+main: $(MAINEXE)
+
+# add object directories as order-only prerequisites (objects do not get remade because timestamp changes) 
+$(CXXOBJS): | $(OBJDIR)
+$(TESTOBJS): | $(OBJDIR)
+$(NVCCOBJS): | $(OBJDIR)
+
+$(MAINEXE): $(CXXOBJS) $(NVCCOBJS) $(OBJDIR)/tests/main.o
+	$(CXX) -o $(MAINEXE) $(OBJDIR)/tests/main.o $(CXXOBJS) $(NVCCOBJS) $(LIBFLAGS) $(LDFLAGS)
+
+# make all object directories if required
+$(OBJDIR):
+	mkdir $(OBJDIR) && mkdir $(OBJDIR)/cpp $(OBJDIR)/cu $(OBJDIR)/tests
+
+
+$(CXXOBJS): $(OBJDIR)/cpp/%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $(CXXINCLUDES) $< -o $@
+
+$(TESTOBJS): $(OBJDIR)/tests/%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $(CXXINCLUDES) $< -o $@
+
+$(NVCCOBJS): $(OBJDIR)/cu/%.o: %.cu
+	$(NVCC) -c $(NVCCFLAGS) $(NVCCINCLUDES) $< -o $@
+
+
+depend:
+	cd ../src; \
+	 makedepend $(CXXINCLUDES) -p $(OBJDIR)/ -f ../Custom/Makefile $(addprefix cpp/,$(CXXSRCS)) $(addprefix cu/,$(NVCCSRCS)); \
+
+
+clean:
+	rm -f *.o *.ptx $(OBJDIR)/*.o $(OBJDIR)/*.ptx $(OBJDIR)/cpp/*.o $(OBJDIR)/cu/*.o $(OBJDIR)/cu/*.ptx $(OBJDIR)/tests/*.o
+
+
+# DO NOT DELETE
+
+obj/tests/main.o: /usr/local/cuda/5.0/include/cuda.h /usr/include/stdlib.h
+obj/tests/main.o: /usr/include/features.h /usr/include/sys/cdefs.h
+obj/tests/main.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+obj/tests/main.o: /usr/include/gnu/stubs-64.h /usr/include/sys/types.h
+obj/tests/main.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+obj/tests/main.o: /usr/include/time.h /usr/include/endian.h
+obj/tests/main.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+obj/tests/main.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+obj/tests/main.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+obj/tests/main.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+obj/tests/main.o: /home/tmarscha/granular2d/include/granular2d.h
+obj/tests/main.o: /home/tmarscha/granular2d/include/box.h
+obj/tests/main.o: /home/tmarscha/granular2d/include/cell_list.h
+obj/tests/main.o: /usr/local/cuda/5.0/include/cuda_runtime_api.h
+obj/tests/main.o: /usr/local/cuda/5.0/include/host_defines.h
+obj/tests/main.o: /usr/local/cuda/5.0/include/builtin_types.h
+obj/tests/main.o: /usr/local/cuda/5.0/include/device_types.h
+obj/tests/main.o: /usr/local/cuda/5.0/include/driver_types.h
+obj/tests/main.o: /usr/include/limits.h /usr/include/bits/posix1_lim.h
+obj/tests/main.o: /usr/include/bits/local_lim.h /usr/include/linux/limits.h
+obj/tests/main.o: /usr/include/bits/posix2_lim.h
+obj/tests/main.o: /usr/local/cuda/5.0/include/surface_types.h
+obj/tests/main.o: /usr/local/cuda/5.0/include/texture_types.h
+obj/tests/main.o: /usr/local/cuda/5.0/include/vector_types.h
+obj/tests/main.o: /usr/local/cuda/5.0/include/cuda_device_runtime_api.h
+obj/tests/main.o: /home/tmarscha/granular2d/include/constants.h
+obj/tests/main.o: /home/tmarscha/granular2d/include/device_config.h
+obj/tests/main.o: /usr/local/cuda/5.0/include/cuda_runtime.h
+obj/tests/main.o: /usr/local/cuda/5.0/include/host_config.h
+obj/tests/main.o: /usr/local/cuda/5.0/include/channel_descriptor.h
+obj/tests/main.o: /usr/local/cuda/5.0/include/driver_functions.h
+obj/tests/main.o: /usr/local/cuda/5.0/include/vector_functions.h
+obj/tests/main.o: /home/tmarscha/granular2d/include/disk.h
+obj/tests/main.o: /home/tmarscha/granular2d/include/error_check.h
+obj/tests/main.o: /home/tmarscha/granular2d/include/find_neighbors.h
+obj/tests/main.o: /home/tmarscha/granular2d/include/spherocyl2d.h
+obj/tests/main.o: /home/tmarscha/granular2d/include/neighbor_list.h

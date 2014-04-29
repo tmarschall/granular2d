@@ -51,17 +51,12 @@ void KernelConfig::configure(int np, int tpp, int smpt, int smpb)
 	}
 	int nb = (np*tpp + tpb - 1) / tpb;
 	int sm = smpb + tpb * smpt;
-	// Can't exceed the device limit of shared memory per block
-	while (sm > props.sharedMemPerBlock) {
+	// Want to have more than 2 blocks per multiprocessor (even more usually better)
+	// And can't exceed the device limit of shared memory per block
+	while (nb < 3*props.multiProcessorCount || sm > props.sharedMemPerBlock) {
 		tpb /= 2;
 		nb *= 2;
 		sm = smpb + tpb * smpt;
-	}
-	// Want to have more than 2 blocks per multiprocessor if possible (even more usually better)
-	while (tpb > 2*props.warpSize && nb < 3*props.multiProcessorCount) {
-	  tpb /= 2;
-	  nb *= 2;
-	  sm = smpb + tpb * smpt;
 	}
 
 	// Extreme cases

@@ -21,7 +21,7 @@ NVCCINCLUDES= -I$(CUDAPATH)/include -I$(PROJECT_ROOT)/include
 
 # set compiler flags for object compilation
 CXXFLAGS= -Wall -O3
-NVCCFLAGS= -O3 --ptxas-options=-v -gencode arch=compute_20,code=sm_20 
+NVCCFLAGS= -O3 --ptxas-options=-v -arch=sm_30 
 
 # set additional directories to search for libraries
 LIBFLAGS= -L$(CUDAPATH)/lib64
